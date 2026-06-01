@@ -28,6 +28,9 @@ struct DecryptView: View {
     @State private var decryptingbid: String? = nil
     @State private var errormsg: String? = nil
     @State private var pendingdecrypt: decryptapp? = nil
+    @State private var useFrida = false
+    @State private var fridaRunning = false
+    @State private var fridaIP = ""
 
     private let documentspath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first ?? ""
 
@@ -46,6 +49,12 @@ struct DecryptView: View {
                         Text("Sandbox escape not ready. Run the sandbox escape first.")
                             .foregroundColor(.secondary)
                     } header: { Text("Status") }
+                }
+                Toggle("Use Frida (PC decrypt/inject)", isOn: $useFrida)
+                if useFrida {
+                    Section("Frida Status") {
+                        Text(fridaRunning ? "Running at \(fridaIP)" : "Not running")
+                    }
                 }
 
                 HStack {

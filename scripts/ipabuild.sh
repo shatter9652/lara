@@ -61,6 +61,17 @@ fi
 echo "[*] Packaging..."
 mkdir Payload
 cp -r $APPLICATION_NAME.app Payload/$APPLICATION_NAME.app
+# Bundle entire Frida (server+agent) from deb at compile time for runtime use (signed inside app)
+FRIDA_DEB="$WORKING_LOCATION/frida_17.10.0_iphoneos-arm64.deb"
+if [ -f "$FRIDA_DEB" ]; then
+  mkdir -p /tmp/frida_extract
+  (cd /tmp/frida_extract && ar x "$FRIDA_DEB" && tar -xJf data.tar.xz)
+  mkdir -p Payload/$APPLICATION_NAME.app/frida
+  cp /tmp/frida_extract/var/jb/usr/sbin/frida-server Payload/$APPLICATION_NAME.app/frida/ || true
+  cp /tmp/frida_extract/var/jb/usr/lib/frida-1.0/frida-agent.dylib Payload/$APPLICATION_NAME.app/frida/ || true
+  cp /tmp/frida_extract/var/jb/Library/LaunchDaemons/re.frida.server.plist Payload/$APPLICATION_NAME.app/frida/ || true
+  rm -rf /tmp/frida_extract
+fi
 zip -vr $APPLICATION_NAME.ipa Payload
 
 echo "[*] All done, cleaning up..."
