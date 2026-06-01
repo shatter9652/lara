@@ -31,6 +31,19 @@ cp -R "$APP_PATH" "$PWD/build/Payload/"
 
 plutil -replace UIFileSharingEnabled -bool YES "$PWD/build/Payload/lara.app/Info.plist"
 
+# Bundle full Frida (server+agent+plist) from deb into signed app for runtime use (PC decrypt/inject + terminal)
+FRIDA_DEB="$PWD/frida_17.10.0_iphoneos-arm64.deb"
+if [ -f "$FRIDA_DEB" ]; then
+  FRIDA_TMP=/tmp/frida_extract_$$
+  mkdir -p "$FRIDA_TMP"
+  (cd "$FRIDA_TMP" && ar x "$FRIDA_DEB" && tar -xJf data.tar.xz)
+  mkdir -p "$PWD/build/Payload/lara.app/frida"
+  cp "$FRIDA_TMP/var/jb/usr/sbin/frida-server" "$PWD/build/Payload/lara.app/frida/" 2>/dev/null || true
+  cp "$FRIDA_TMP/var/jb/usr/lib/frida-1.0/frida-agent.dylib" "$PWD/build/Payload/lara.app/frida/" 2>/dev/null || true
+  cp "$FRIDA_TMP/var/jb/Library/LaunchDaemons/re.frida.server.plist" "$PWD/build/Payload/lara.app/frida/" 2>/dev/null || true
+  rm -rf "$FRIDA_TMP"
+fi
+
 if ! command -v ldid >/dev/null 2>&1; then
   echo "ERROR: ldid not installed. Install with: brew install ldid" >&2
   exit 1
